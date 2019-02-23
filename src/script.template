@@ -1,0 +1,57 @@
+// ==UserScript==
+// @name New Script
+// @namespace Violentmonkey Scripts
+// @include https://leetcode.com/problemset/*
+// ==/UserScript==
+const urls = new Set([
+  {{urls}}
+]);
+const sleepTime = 500;
+
+function func1(tbody) {
+  console.log('refresh');
+  let rows = tbody.getElementsByTagName("tr");
+  for (let i = 0; i < rows.length; i++) {
+    let anchors = rows[i].getElementsByTagName("a");
+    if (anchors.length === 0) continue;
+
+    let anchor = anchors[0];
+    if (urls.has(anchor.getAttribute('href')) && !rows[i].firstElementChild.hasChildNodes()) {
+      let span = document.createElement("span");
+      span.className = "text-warning fa fa-check";
+      rows[i].firstElementChild.appendChild(span);
+      console.log('match "' + anchor.getAttribute('href') + '" matched.');
+    }
+  }
+}
+
+function func2() {
+  try {
+    let tables = document.getElementsByClassName("question-list-table");
+    if (tables.length === 0) throw "div.question-list-table not found.";
+    let table = tables[0];
+
+    let tbodies = table.getElementsByTagName("tbody");
+    if (tbodies.length === 0) throw "div.question-list-table>tbody not found.";
+    let tbody = tbodies[0];
+
+    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+    if (MutationObserver) {
+      // define a new observer
+      let obs = new MutationObserver(function (mutations, observer) {
+        func1(tbody);
+      })
+      // have the observer observe foo for changes in children
+      obs.observe(tbody, { childList: true, subtree: true });
+    }
+
+    func1(tbody);
+    console.log('Done!')
+  } catch (e) {
+    console.log(e + " Retry in 0.5s.");
+    setTimeout(func2, sleepTime);
+  }
+}
+
+console.log('script starts.')
+setTimeout(func2, sleepTime);
